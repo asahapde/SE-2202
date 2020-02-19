@@ -1,0 +1,16 @@
+function findNextAvailableMonth(currentMonth, monthArray) {
+    let index = 0;
+
+    if(currentMonth==12) index = 1;
+    else index = currentMonth + 1;
+
+
+    while (monthArray.indexOf(index) != -1) {
+        if (index = 12) index = 1;
+        else index++;
+    }
+
+    return index;
+}
+
+module.exports = findNextAvailableMonth;

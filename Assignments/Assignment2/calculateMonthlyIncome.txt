@@ -1,0 +1,6 @@
+function calculateMonthlyIncome(list, month) {
+    return (list.filter(item => (!item.expenses && item.month.indexOf(month) != -1))
+        .map(m => m.value).reduce((a, b) => a + b));
+}
+
+module.exports = calculateMonthlyIncome;

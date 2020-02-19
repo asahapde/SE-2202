@@ -1,0 +1,11 @@
+function calculateYearlyExpense(list, calculateMonthlyExpenseFunction){
+    let yearlyExpense = 0;
+    for (let i = 0; i < 12; i++) {
+
+        yearlyExpense += calculateMonthlyExpenseFunction(list, i + 1);
+    }
+
+    return yearlyExpense;
+}
+
+module.exports = calculateYearlyExpense;

@@ -1,0 +1,10 @@
+function calculateYearlyIncome(list, calculateMonthlyIncomeFunction){
+    let yearlyIncome = 0;
+    for (let i = 0; i < 12; i++) {
+        yearlyIncome += calculateMonthlyIncomeFunction(list, i + 1);
+    }
+
+    return yearlyIncome;
+}
+
+module.exports = calculateYearlyIncome;

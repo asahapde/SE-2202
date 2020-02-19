@@ -1,0 +1,270 @@
+/*let items = [{name: "Paycheck", value: 2700, expenses: false, month: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]},
+    {name: "Groceries", value: 1000, expenses: true, month: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]},
+    {name: "Dentist", value: 400, expenses: true, month: [1, 6, 11]},
+    {name: "Car Maintenance", value: 1200, expenses: true, month: [1]},
+    {name: "Graduation Party", value: 300, expenses: true, month: [5]},
+    {name: "New Phone", value: 900, expenses: true, month: [1]},
+    {name: "Vacation", value: 1500, expenses: true, month: [2]},
+    {name: "Gas", value: 250, expenses: true, month: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]},
+    {name: "Birthday Money", value: 300, expenses: false, month: [9]},
+    {name: "House Renovation", value: 2000, expenses: true, month: [2]}
+];*/
+
+/*In this case, the month of January will be down $1050, and the program will need to carry something to the next month.
+ Assuming it moves the top of the list, it will move groceries. Not sure if that's an issue for us (if we'd prefer it to move new phone or something).
+  If we don't care what it moves, that's fine. It will then have to move the next thing on the list to February, before finally being on budget.
+   Then February is extremely heavy, with a vacation payment and house renovation. It will be down $3100.
+    After moving items, we will realize we can't afford anything this month, and will move all of the expenses to March with double carry over.
+     It's hard to track whether or not it will send the initial $1400 that we moved from groceries and dentist from january to March first, or start with february expenses,
+      but in the end it should even out somewhere in the middle of the year.
+
+    Tl;dr - this case moves expenses early to use carry over from early months to pay for things later, but we do have the money.*/
+
+/*let items = [{name: "Paycheck", value: 1500, expenses: false, month: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]},
+    {name: "Groceries", value: 1000, expenses: true, month: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]},
+    {name: "Dentist", value: 400, expenses: true, month: [1, 6, 11]},
+    {name: "Car Maintenance", value: 1200, expenses: true, month: [1]},
+    {name: "Graduation Party", value: 300, expenses: true, month: [5]},
+    {name: "New Phone", value: 900, expenses: true, month: [1]},
+    {name: "Vacation", value: 1500, expenses: true, month: [2]},
+    {name: "Gas", value: 250, expenses: true, month: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]},
+    {name: "Garage Sale", value: 300, expenses: false, month: [9]},
+    {name: "House Renovation", value: 2000, expenses: true, month: [2]},
+    {name: "Netflix", value: 100, expenses: true, month: [4, 5, 6, 7, 8, 9, 10, 11, 12]}
+];
+
+/*In this case, the expenses outweigh the income - we cannot afford this lifestyle.*/
+
+let items = [{name: "Paycheck", value: 1500, expenses: false, month: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]},
+    {name: "Groceries", value: 1000, expenses: true, month: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]},
+    {name: "Dentist", value: 400, expenses: true, month: [1, 6, 11]},
+    {name: "Car Maintenance", value: 1200, expenses: true, month: [1]},
+    {name: "Inheritance", value: 35000, expenses: false, month: [6]},
+    {name: "New Phone", value: 900, expenses: true, month: [1]},
+    {name: "Vacation", value: 1500, expenses: true, month: [2]},
+    {name: "Gas", value: 250, expenses: true, month: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]},
+    {name: "Garage Sale", value: 300, expenses: false, month: [9]},
+    {name: "House Renovation", value: 2000, expenses: true, month: [2]},
+    {name: "Netflix", value: 100, expenses: true, month: [4, 5, 6, 7, 8, 9, 10, 11, 12]}
+];
+
+/*This one is going to continue pushing most things back until month 6 (June),
+ when we get an inheritance cheque and can pay everything off. After that, we'll have enough carryover to pay for everything for the rest of the year.*/
+
+
+/*let items = [{name: "Paycheck", value: 2700, expenses: false, month: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]},
+    {name: "Groceries", value: 1000, expenses: true, month: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]},
+    {name: "Dentist", value: 400, expenses: true, month: [3, 8, 12]},
+    {name: "Car Maintenance", value: 1200, expenses: true, month: [1]},
+    {name: "Graduation Party", value: 300, expenses: true, month: [5]},
+    {name: "New Phone", value: 900, expenses: true, month: [11]},
+    {name: "Gas", value: 250, expenses: true, month: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]},
+    {name: "Birthday Money", value: 300, expenses: false, month: [9]}
+];*/
+
+/* This does not require any changes */
+
+
+// Global Variables
+let yearlyIncome = 0;
+let yearlyExpense = 0;
+let requireRecommendation = false;
+let monthlyBalanceCarry = 0;
+let monthlyIncome = 0;
+let monthlyExpense = 0;
+let validExpenses = [];
+let newMonthIndex = 0;
+let oldMonthIndex = 0;
+let totalBalanceCarry = [];
+
+// Allows to easily map the month names
+let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
+    "November", "December"];
+
+
+// Calculate the monthly income from the given information
+function calculatemonthlyIncome(list, month) {
+    return (list.filter(item => (!item.expenses && item.month.indexOf(month) != -1))
+        .map(m => m.value).reduce((a, b) => a + b));
+}
+
+// Calculate the monthly expense from the given information
+function calculatemonthlyExpense(list, month) {
+    return (list.filter(item => (item.expenses && item.month.indexOf(month) != -1))
+        .map(m => m.value).reduce((a, b) => a + b));
+}
+
+// Used to recommend the next available month
+function findNextAvailableMonth(currentMonth, monthArray) {
+    let index = 0;
+
+    if(currentMonth==12) index = 1;
+    else index = currentMonth + 1;
+
+
+
+    while (monthArray.indexOf(index) != -1) {
+        if (index = 12) index = 1;
+        else index++;
+
+    }
+
+
+
+    return index;
+}
+
+// Sort the Given Budget Items from the highest to lowest value
+items.sort((a, b) => b.value - a.value);
+
+// Calculate Yearly income and expense
+for (let i = 0; i < 12; i++) {
+    yearlyIncome += calculatemonthlyIncome(items, i + 1);
+    yearlyExpense += calculatemonthlyExpense(items, i + 1);
+}
+
+// If the yearlyIncome is less than yearlyExpense no rescheduling can be done
+if (yearlyExpense > yearlyIncome) {
+    console.log("--------------------------------");
+    console.log("Yearly Income: " + yearlyIncome + ", Yearly Expense: " + yearlyExpense);
+    console.log("Rescheduling your budget is not possible because Yearly Expense > Yearly Income");
+    console.log("--------------------------------");
+} else {
+    // Inform the user about their monthly budget without recommendation while checking if there is a need for it;
+    console.log("-------------------------------------------");
+    console.log("| Current Spending without recommendation |")
+    console.log("-------------------------------------------");
+    for (let i = 0; i < 12; i++) {
+        monthlyIncome = calculatemonthlyIncome(items, i + 1);
+        monthlyExpense = calculatemonthlyExpense(items, i + 1);
+        monthlyBalanceCarry += monthlyIncome - monthlyExpense;
+        totalBalanceCarry.push(monthlyBalanceCarry);
+        if (monthlyBalanceCarry < 0) requireRecommendation = true;
+        console.log(months[i]);
+        console.log("-------------------");
+        console.log("monthly Income: " + monthlyIncome);
+        console.log("monthly Income Items: " + (items.filter(item => (!item.expenses && item.month.indexOf(i + 1) != -1))
+            .map(m => m.name)));
+        console.log("monthly Expense: " + monthlyExpense);
+        console.log("monthly Expense Items: " + (items.filter(item => (item.expenses && item.month.indexOf(i + 1) != -1))
+            .map(m => m.name)));
+        //console.log("monthly Balance Carry: " + monthlyBalanceCarry);
+        console.log();
+    }
+
+    //console.log(totalBalanceCarry);
+    if (requireRecommendation) {
+        console.log("-------------------------------------------");
+        console.log("|            Recommendations              |");
+        console.log("-------------------------------------------");
+
+        // Sort out expenses that cannot be rescheduled (Check if they are not a full year expense)
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].expenses) {
+                for (let j = 1; j <= 12; j++) {
+                    if (items[i].month.indexOf(j) == -1) {
+                        validExpenses.push(i);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Recommendation Algorithm
+        monthlyBalanceCarry = 0;
+        let newMonthlyBalanceCarry = 0;
+        let previousMonth = 0;
+        for (let i = 0; i < 12; i++) {
+            //console.log("month " + months[i]);
+            //monthlyIncome = calculatemonthlyIncome(items, i + 1);
+            //monthlyExpense = calculatemonthlyExpense(items, i + 1);
+            //monthlyBalanceCarry += monthlyIncome - monthlyExpense;
+
+            //console.log("tot bal " + totalBalanceCarry[i]);
+
+
+            if (totalBalanceCarry[i] < 0) {
+                for(let j = 0; j < items.length; j ++) {
+                    if (validExpenses.indexOf(j) != -1 && items[j].month.indexOf(i+1) != -1) {
+                        //console.log(items[j].name);
+                        oldMonthIndex = i+1;
+                        //console.log("old " + oldMonthIndex);
+                        newMonthIndex = findNextAvailableMonth(oldMonthIndex, items[j].month);
+                        //console.log("New " + newMonthIndex);
+                        items[j].month[items[j].month.indexOf(oldMonthIndex)] = newMonthIndex;
+
+                        console.log(items[j].name + " should be moved from " + months[oldMonthIndex-1] + " to " + months[newMonthIndex-1]);
+
+                        newMonthlyBalanceCarry = 0;
+                        monthlyIncome = calculatemonthlyIncome(items, i + 1) + previousMonth;
+                        //console.log("new inc " + monthlyIncome)
+                        monthlyExpense = calculatemonthlyExpense(items, i + 1);
+                        //console.log("new exp " + monthlyExpense);
+                        newMonthlyBalanceCarry = monthlyIncome - monthlyExpense;
+                        //console.log("New Carry " + newMonthlyBalanceCarry);
+                        totalBalanceCarry[newMonthIndex-1] -= items[j].value;
+                        totalBalanceCarry[i] = newMonthlyBalanceCarry;
+                        //console.log(totalBalanceCarry);
+
+                        if(newMonthlyBalanceCarry>0) break;
+                    }
+
+
+                }
+
+            }
+
+
+
+
+
+
+
+            if(totalBalanceCarry[i] > 0){
+                if(i != 11) {
+                    totalBalanceCarry[i + 1] += totalBalanceCarry[i];
+
+                    previousMonth = totalBalanceCarry[i];
+                    totalBalanceCarry[i] = 0;
+                }
+            }
+
+            //console.log(totalBalanceCarry);
+
+        }
+
+        console.log();
+
+        console.log("-------------------------------------------");
+        console.log("|            New Budget List              |");
+        console.log("-------------------------------------------");
+        console.log("*NOTE: MONTLY BALANCE CARRY IS ADDED TO THE NEXT MONTH*")
+        console.log();
+
+        for (let i = 0; i < 12; i++) {
+            monthlyIncome = calculatemonthlyIncome(items, i + 1);
+            monthlyExpense = calculatemonthlyExpense(items, i + 1);
+            monthlyBalanceCarry += monthlyIncome - monthlyExpense;
+            totalBalanceCarry.push(monthlyBalanceCarry);
+            if (monthlyBalanceCarry < 0) requireRecommendation = true;
+            console.log(months[i]);
+            console.log("-------------------");
+            console.log("monthly Income: " + monthlyIncome);
+            console.log("monthly Income Items: " + (items.filter(item => (!item.expenses && item.month.indexOf(i + 1) != -1))
+                .map(m => m.name)));
+            console.log("monthly Expense: " + monthlyExpense);
+            console.log("monthly Expense Items: " + (items.filter(item => (item.expenses && item.month.indexOf(i + 1) != -1))
+                .map(m => m.name)));
+            console.log("monthly Balance Carry: " + monthlyBalanceCarry);
+            console.log();
+        }
+
+
+    } else {
+        console.log("-------------------------------------------");
+        console.log("This Budget List does not require changes!");
+        console.log("-------------------------------------------");
+    }
+
+
+}

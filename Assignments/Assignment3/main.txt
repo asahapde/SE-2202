@@ -1,0 +1,228 @@
+let items = [{name: "Paycheck", value: 1500, expenses: false, month: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]},
+    {name: "Groceries", value: 1000, expenses: true, month: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]},
+    {name: "Dentist", value: 400, expenses: true, month: [1, 6, 11]},
+    {name: "Car Maintenance", value: 1200, expenses: true, month: [1]},
+    {name: "Inheritance", value: 35000, expenses: false, month: [6]},
+    {name: "New Phone", value: 900, expenses: true, month: [1]},
+    {name: "Vacation", value: 1500, expenses: true, month: [2]},
+    {name: "Gas", value: 250, expenses: true, month: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]},
+    {name: "Garage Sale", value: 300, expenses: false, month: [9]},
+    {name: "House Renovation", value: 2000, expenses: true, month: [2]},
+    {name: "Netflix", value: 100, expenses: true, month: [4, 5, 6, 7, 8, 9, 10, 11, 12]}
+];
+
+// Global Variables
+let yearlyIncome = 0;
+let yearlyExpense = 0;
+let requireRecommendation = false;
+let monthlyBalanceCarry = 0;
+let monthlyIncome = 0;
+let monthlyExpense = 0;
+let validExpenses = [];
+let newMonthIndex = 0;
+let oldMonthIndex = 0;
+let totalBalanceCarry = [];
+
+// Allows to easily map the month names
+let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
+    "November", "December"];
+
+// Modules
+/*let findNextAvailableMonth = require('./findNextAvailableMonth');
+let calculateMonthlyIncome = require('./calculateMonthlyIncome');
+let calculateMonthlyExpense = require('./calculateMonthlyExpense');
+let calculateYearlyIncome = require('./calculateYearlyIncome');
+let calculateYearlyExpense = require('./calculateYearlyExpense');*/
+let findNextAvailableMonth;
+let calculateMonthlyIncome;
+let calculateMonthlyExpense;
+let calculateYearlyIncome;
+let calculateYearlyExpense;
+
+//Promises
+let findNextAvailableMonthPromise = new Promise(function(resolve, reject){
+    try{
+        findNextAvailableMonth = require('./findNextAvailableMonth');
+        resolve(findNextAvailableMonth);
+    }catch(e){
+        reject("findNextAvailableMonth was not found");
+    }
+});
+
+let calculateMonthlyIncomePromise = new Promise(function(resolve, reject){
+    try{
+        calculateMonthlyIncome = require('./calculateMonthlyIncome');
+        resolve(calculateMonthlyIncome);
+    }catch(e){
+        reject("calculateMonthlyIncome was not found");
+    }
+});
+
+let calculateMonthlyExpensePromise = new Promise(function(resolve, reject){
+    try{
+        calculateMonthlyExpense = require('./calculateMonthlyExpense');
+        resolve(calculateMonthlyExpense);
+    }catch(e){
+        reject("calculateMonthlyExpense was not found");
+    }
+});
+
+let calculateYearlyIncomePromise = new Promise(function(resolve, reject){
+    try{
+        calculateYearlyIncome = require('./calculateYearlyIncome');
+        resolve(calculateYearlyIncome);
+    }catch(e){
+        reject("calculateYearlyIncome was not found");
+    }
+});
+
+let calculateYearlyExpensePromise = new Promise(function(resolve, reject){
+    try{
+        calculateYearlyExpense = require('./calculateYearlyExpense');
+        resolve(calculateYearlyExpense);
+    }catch(e){
+        reject("calculateYearlyExpense was not found");
+    }
+});
+
+//Load Promises
+findNextAvailableMonthPromise.then(result => {console.log("findNextAvailableMonth has been found " + result)})
+    .catch(result => {console.log("Trying to access module again " + result)});
+
+calculateMonthlyIncomePromise.then(result => {console.log("findNextAvailableMonth has been found " + result)})
+    .catch(result => {console.log("Trying to access module again " + result)});
+
+calculateMonthlyExpensePromise.then(result => {console.log("findNextAvailableMonth has been found " + result)})
+    .catch(result => {console.log("Trying to access module again " + result)});
+
+calculateYearlyIncomePromise.then(result => {console.log("findNextAvailableMonth has been found " + result)})
+    .catch(result => {console.log("Trying to access module again " + result)});
+
+calculateYearlyExpensePromise.then(result => {console.log("findNextAvailableMonth has been found " + result)})
+    .catch(result => {console.log("Trying to access module again " + result)});
+
+
+
+// Sort the Given Budget Items from the highest to lowest value
+items.sort((a, b) => b.value - a.value);
+
+// Calculate Yearly income and expense
+yearlyIncome = calculateYearlyIncome(items, calculateMonthlyIncome);
+yearlyExpense = calculateYearlyExpense(items, calculateMonthlyExpense);
+
+// If the yearlyIncome is less than yearlyExpense no rescheduling can be done
+if (yearlyExpense > yearlyIncome) {
+    console.log("--------------------------------");
+    console.log("Yearly Income: " + yearlyIncome + ", Yearly Expense: " + yearlyExpense);
+    console.log("Rescheduling your budget is not possible because Yearly Expense > Yearly Income");
+    console.log("--------------------------------");
+} else {
+    // Inform the user about their monthly budget without recommendation while checking if there is a need for it;
+    console.log("-------------------------------------------");
+    console.log("| Current Spending without recommendation |")
+    console.log("-------------------------------------------");
+    for (let i = 0; i < 12; i++) {
+        monthlyIncome = calculateMonthlyIncome(items, i + 1);
+        monthlyExpense = calculateMonthlyExpense(items, i + 1);
+        monthlyBalanceCarry += monthlyIncome - monthlyExpense;
+        totalBalanceCarry.push(monthlyBalanceCarry);
+        if (monthlyBalanceCarry < 0) requireRecommendation = true;
+        console.log(months[i]);
+        console.log("-------------------");
+        console.log("monthly Income: " + monthlyIncome);
+        console.log("monthly Income Items: " + (items.filter(item => (!item.expenses && item.month.indexOf(i + 1) != -1))
+            .map(m => m.name)));
+        console.log("monthly Expense: " + monthlyExpense);
+        console.log("monthly Expense Items: " + (items.filter(item => (item.expenses && item.month.indexOf(i + 1) != -1))
+            .map(m => m.name)));
+        console.log();
+    }
+
+    if (requireRecommendation) {
+        console.log("-------------------------------------------");
+        console.log("|            Recommendations              |");
+        console.log("-------------------------------------------");
+
+        // Sort out expenses that cannot be rescheduled (Check if they are not a full year expense)
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].expenses) {
+                for (let j = 1; j <= 12; j++) {
+                    if (items[i].month.indexOf(j) == -1) {
+                        validExpenses.push(i);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Recommendation Algorithm
+        monthlyBalanceCarry = 0;
+        let newMonthlyBalanceCarry = 0;
+        let previousMonth = 0;
+        for (let i = 0; i < 12; i++) {
+            if (totalBalanceCarry[i] < 0) {
+                for(let j = 0; j < items.length; j ++) {
+                    if (validExpenses.indexOf(j) != -1 && items[j].month.indexOf(i+1) != -1) {
+                        oldMonthIndex = i+1;
+                        newMonthIndex = findNextAvailableMonth(oldMonthIndex, items[j].month);
+                        items[j].month[items[j].month.indexOf(oldMonthIndex)] = newMonthIndex;
+
+                        console.log(items[j].name + " should be moved from " + months[oldMonthIndex-1] + " to " + months[newMonthIndex-1]);
+
+                        newMonthlyBalanceCarry = 0;
+                        monthlyIncome = calculateMonthlyIncome(items, i + 1) + previousMonth;
+                        monthlyExpense = calculateMonthlyExpense(items, i + 1);
+                        newMonthlyBalanceCarry = monthlyIncome - monthlyExpense;
+                        totalBalanceCarry[newMonthIndex-1] -= items[j].value;
+                        totalBalanceCarry[i] = newMonthlyBalanceCarry;
+
+                        if(newMonthlyBalanceCarry>0) break;
+                    }
+                }
+            }
+
+            if(totalBalanceCarry[i] > 0){
+                if(i != 11) {
+                    totalBalanceCarry[i + 1] += totalBalanceCarry[i];
+
+                    previousMonth = totalBalanceCarry[i];
+                    totalBalanceCarry[i] = 0;
+                }
+            }
+
+        }
+
+        console.log();
+
+        console.log("-------------------------------------------");
+        console.log("|            New Budget List              |");
+        console.log("-------------------------------------------");
+        console.log("*NOTE: MONTHLY BALANCE CARRY IS ADDED TO THE NEXT MONTH*")
+        console.log();
+
+        for (let i = 0; i < 12; i++) {
+            monthlyIncome = calculateMonthlyIncome(items, i + 1);
+            monthlyExpense = calculateMonthlyExpense(items, i + 1);
+            monthlyBalanceCarry += monthlyIncome - monthlyExpense;
+            totalBalanceCarry.push(monthlyBalanceCarry);
+            if (monthlyBalanceCarry < 0) requireRecommendation = true;
+            console.log(months[i]);
+            console.log("-------------------");
+            console.log("monthly Income: " + monthlyIncome);
+            console.log("monthly Income Items: " + (items.filter(item => (!item.expenses && item.month.indexOf(i + 1) != -1))
+                .map(m => m.name)));
+            console.log("monthly Expense: " + monthlyExpense);
+            console.log("monthly Expense Items: " + (items.filter(item => (item.expenses && item.month.indexOf(i + 1) != -1))
+                .map(m => m.name)));
+            console.log("monthly Balance Carry: " + monthlyBalanceCarry);
+            console.log();
+        }
+
+
+    } else {
+        console.log("-------------------------------------------");
+        console.log("This Budget List does not require changes!");
+        console.log("-------------------------------------------");
+    }
+
+}
